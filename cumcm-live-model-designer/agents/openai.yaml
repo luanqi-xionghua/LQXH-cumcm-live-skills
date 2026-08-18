@@ -1,0 +1,4 @@
+interface:
+  display_name: "CUMCM 赛时模型设计"
+  short_description: "赛时完成候选模型比较、公式合同、基线、验证与降级方案"
+  default_prompt: "Use $cumcm-live-model-designer to turn each CUMCM subproblem into a validated model contract with baselines and failure checks."

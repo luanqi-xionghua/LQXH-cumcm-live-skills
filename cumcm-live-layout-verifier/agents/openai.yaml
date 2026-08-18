@@ -1,0 +1,4 @@
+interface:
+  display_name: "CUMCM 排版复核"
+  short_description: "重复检查 Word/LaTeX 与最终 PDF 的真实排版质量"
+  default_prompt: "请使用 $cumcm-live-layout-verifier 对当前论文源文件和最终 PDF 做重复排版复核。"

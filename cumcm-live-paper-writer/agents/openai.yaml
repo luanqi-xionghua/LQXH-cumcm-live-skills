@@ -1,0 +1,4 @@
+interface:
+  display_name: "CUMCM 赛时论文写作"
+  short_description: "赛时依据冻结结果完成国赛 A/B/C 论文、图表、验证与排版"
+  default_prompt: "Use $cumcm-live-paper-writer to draft and format a CUMCM paper strictly from frozen results and traceable figures."

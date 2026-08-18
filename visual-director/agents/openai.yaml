@@ -1,0 +1,7 @@
+interface:
+  display_name: "Visual Director Skill"
+  short_description: "32套风格的中文图文视觉导演"
+  brand_color: "#111827"
+  default_prompt: "Use $visual-director to match a visual style from the topic and turn it into a platform-ready social-media carousel with page planning, image prompts, publishing copy, and optional demo packaging."
+policy:
+  allow_implicit_invocation: true

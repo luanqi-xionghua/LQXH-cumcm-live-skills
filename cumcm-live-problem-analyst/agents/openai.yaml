@@ -1,0 +1,4 @@
+interface:
+  display_name: "CUMCM 赛时拆题分析"
+  short_description: "赛时拆解国赛 A/B/C 题目、附件、依赖关系、风险与首轮交付物"
+  default_prompt: "Use $cumcm-live-problem-analyst to parse the released CUMCM problem and attachments into a contest-ready problem contract."

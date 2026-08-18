@@ -1,0 +1,4 @@
+interface:
+  display_name: "CUMCM 赛时终稿审计"
+  short_description: "提交前审计数据、公式、代码、图表、匿名与文件完整性"
+  default_prompt: "Use $cumcm-live-final-auditor to run the final pre-submission audit on a CUMCM paper and its supporting artifacts."

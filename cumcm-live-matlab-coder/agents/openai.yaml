@@ -1,0 +1,4 @@
+interface:
+  display_name: "CUMCM 赛时 Matlab 编程"
+  short_description: "赛时生成可复现模型结果与统一、丰富的 A/B/C 论文图"
+  default_prompt: "Use $cumcm-live-matlab-coder to implement the frozen CUMCM model in reproducible Matlab and export traceable results."
