@@ -90,29 +90,7 @@ flowchart LR
 | Poppler | 排版预检增强 | 提供 `pdftoppm` / `pdfinfo` / `pdfimages`，`layout_preflight.py` 检测到时会额外检查元数据与字体 |
 | 可选 Python 库 | 特定题型增强 | `xgboost` / `lightgbm`（缺失自动回退 sklearn）、`pillow` / `opencv-python`（图像题）、`cvxpy`（可选求解器）、`pytest`（运行自带测试） |
 
-### 3.3 一键安装示例
 
-Windows PowerShell：
-
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install -U pip
-pip install -r requirements.txt
-```
-
-macOS / Linux：
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-python3 -m pip install -U pip
-pip install -r requirements.txt
-```
-
-`requirements.txt` 内容见本仓库根目录（或 [requirements.txt](requirements.txt)）。
-
----
 
 ## 4. 在 Codex 中安装技能
 
@@ -157,9 +135,6 @@ Get-Content "$env:USERPROFILE\.codex\skills\cumcm-live-problem-analyst\SKILL.md"
 
 或在 Codex 对话中直接问：“你现在有哪些可用技能？”，确认能看到 `cumcm-live-*` 系列。
 
-### 4.4 关于 `.system/` 目录
-
-`skills/.system/` 是 OpenAI Codex 官方系统技能（`imagegen`、`openai-docs`、`plugin-creator`、`skill-creator`、`skill-installer`、`review-agent` 等，Apache-2.0）。Codex 自带这些技能，**通常无需手动安装**；随仓库分发时请保留各自目录内的 `LICENSE.txt`。若只发布自研技能，可以排除 `.system/` 以减小仓库体积。
 
 ---
 
@@ -231,37 +206,9 @@ CUMCM2026/
 python -m pytest cumcm-live-layout-verifier/tests cumcm-live-result-verifier/tests cumcm-live-final-auditor/tests
 ```
 
-（未安装 pytest 时也可直接 `python <脚本> --help` 查看用法。）
 
 ---
 
-## 9. 常见问题（FAQ）
 
-**Q1：技能没有被触发？**
-检查技能目录是否在 `$CODEX_HOME/skills/`（默认 `~/.codex/skills/`）、`SKILL.md` 是否完整、是否已重启 Codex 会话；触发时尽量使用与场景一致的描述（见第 5 节）。
-
-**Q2：报错 `ModuleNotFoundError: No module named 'fitz'`？**
-`fitz` 是 PyMuPDF 的导入名：`pip install pymupdf`。
-
-**Q3：编译的中文 PDF 乱码 / 缺字？**
-安装中文字体；LaTeX 路线使用 `xelatex` + `ctex` 宏包，不要用默认 `pdflatex` 编译中文文档。
-
-**Q4：没装 MATLAB，能用吗？**
-可以。直接用 `cumcm-live-python-coder` 路线即可，跳过 `cumcm-live-matlab-coder`；编码阶段根据题型自动选择可用路线。
-
-**Q5：必须联网吗？**
-Codex 本身需要联网（登录 / API）。技能自带脚本大多在本地运行；调用外部视觉模型等增强功能时才需要额外网络。
-
-**Q6：能在别的 AI 工具（Claude / Cursor）里用吗？**
-技能主体是 Markdown 指令 + Python 脚本，通用性强；但目录约定与 `SKILL.md` frontmatter 是按 Codex 设计的。其他工具请按各自的 skills 规范移植。
-
-**Q7：正文页数限制是多少？**
-以当届官方规则为准。技能内置默认“正文 ≤ 30 页、附录不限”硬门，官方更严格时按官方执行。
-
----
-
-## 10. License 与声明
-
-- 自研技能（`cumcm-live-*`、`cumcm-review`、`visual-director`）：版权归原作者乱崎凶华所有，转载 / 分发请保留出处与作者信息（可按需补充 LICENSE 文件）。
-- `.system/` 目录：OpenAI 官方 Codex 系统技能，遵循其各自 LICENSE（Apache-2.0）。
+## 10. 安全声明
 - 使用本套件参赛，请务必遵守当届竞赛规则与 AI 使用规定；本仓库不保证任何比赛结果。
