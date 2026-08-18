@@ -66,8 +66,8 @@ flowchart LR
 
 | 组件 | 要求 | 说明 |
 | --- | --- | --- |
-| Codex | 桌面版 App（Windows / macOS）或 CLI | 技能按 `~/.codex/skills` 约定加载；需登录 OpenAI 账号（订阅）或配置 API Key |
-| 操作系统 | Windows 10/11、macOS 12+、主流 Linux | 均可，部分脚本路径示例以 Windows / POSIX 通用写法给出 |
+| Codex | 桌面版 App | 技能按 `~/.codex/skills` 约定加载；需登录 OpenAI 账号（订阅）或配置 API Key |
+| 操作系统 | Windows 10/11 | 均可，部分脚本路径示例以 Windows / POSIX 通用写法给出 |
 | Python | **3.10+**（推荐 3.11 / 3.12） | 自带脚本使用了 `X | None` 类型标注，Python 3.10 以下无法运行 |
 | Python 依赖 | 见下方清单 | 覆盖数据处理、建模、绘图、PDF 检查 |
 
@@ -96,10 +96,7 @@ flowchart LR
 
 ### 4.1 技能目录约定
 
-Codex 从 `$CODEX_HOME/skills/` 加载技能，默认：
-
-- Windows：`C:\Users\<用户名>\.codex\skills\`
-- macOS / Linux：`~/.codex/skills/`
+ Windows：`C:\Users\<用户名>\.codex\skills\`
 
 每个技能是一个子目录，目录内必须有 `SKILL.md`（含 YAML frontmatter：`name`、`description`）。
 
@@ -116,24 +113,10 @@ Codex 从 `$CODEX_HOME/skills/` 加载技能，默认：
    Copy-Item -Recurse <仓库>\skills\cumcm-live-* "$env:USERPROFILE\.codex\skills\"
    Copy-Item -Recurse <仓库>\skills\cumcm-review "$env:USERPROFILE\.codex\skills\"
    ```
-   macOS / Linux：
-   ```bash
-   cp -r <仓库>/skills/cumcm-live-* ~/.codex/skills/
-   cp -r <仓库>/skills/cumcm-review ~/.codex/skills/
-   ```
+  
 3. **重启 Codex**（或新开一个会话），让 Codex 重新加载技能元数据。
+   
 4. 开始使用：直接在对话里描述任务，Codex 会按 `SKILL.md` 中的 `description` 自动匹配并触发对应技能；也可以直接点名技能名。
-
-### 4.3 验证安装
-
-```powershell
-# Windows
-Get-ChildItem "$env:USERPROFILE\.codex\skills" -Directory
-# 检查每个技能目录下有 SKILL.md
-Get-Content "$env:USERPROFILE\.codex\skills\cumcm-live-problem-analyst\SKILL.md" -TotalCount 5
-```
-
-或在 Codex 对话中直接问：“你现在有哪些可用技能？”，确认能看到 `cumcm-live-*` 系列。
 
 
 ---
