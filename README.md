@@ -1,4 +1,4 @@
-# LQXH CUMCM Live Skills
+# 乱崎凶华 CUMCM Live Skills 
 
 面向中国大学生数学建模竞赛（CUMCM）A、B、C 题的 Codex 技能套件。
 
