@@ -1,188 +1,248 @@
-# 乱崎凶华-CUMCM-live-Codex 技能套件
-仅可用于数学建模的底稿生成，生成后仍要修改
+# LQXH CUMCM Live Skills
 
-基于开源skill的工作流增强与重设计
+面向中国大学生数学建模竞赛（CUMCM）A、B、C 题的 Codex 技能套件。
 
-## 目录
+本项目将赛时工作拆分为“题目审计 → 方法匹配 → 模型冻结 → 编码求解 → 结果复核 → 论文成稿 → 排版检查 → 提交审计”等阶段，并通过合同、运行清单、冻结编号和检查报告维持代码、数据、图表与论文之间的可追溯性。
 
-- [1. 技能清单](#1-技能清单)
-- [2. 工作流](#2-工作流)
-- [3. 环境要求](#3-环境要求)
-- [4. 在 Codex 中安装技能](#4-在-codex-中安装技能)
-- [5. 使用方法与触发示例](#5-使用方法与触发示例)
-- [6. 建议的比赛工作目录](#6-建议的比赛工作目录)
-- [7. 合规与安全须知](#7-合规与安全须知)
-- [8. 自带脚本与自检](#8-自带脚本与自检)
-- [9. 常见问题（FAQ）](#9-常见问题faq)
-- [10. 安全声明](#10-安全声明)
+> 本套件用于辅助生成建模底稿、代码、检查报告和论文草稿，不能替代参赛队员的独立判断。所有产物均须人工复核，并严格遵守当届竞赛规则及 AI 工具使用规定。
 
----
+## 项目特点
 
-## 1. 技能清单
+- **阶段化工作流**：不同技能负责不同环节，可单独调用，也可按完整流程组合使用。
+- **Baseline 优先**：先建立可运行、可解释、可验证的基础方案，再评估增强模型。
+- **结果冻结与门禁**：模型未冻结不进入编码，结果未复核不进入论文，排版未通过不进入终审。
+- **全过程可追溯**：利用 `contract_version`、`freeze_id`、`run_id`、`RID`、`FIG`、`TAB`、`CONTRIB` 等标识连接模型、结果、图表和文字。
+- **双编码路线**：同时提供 Python 与 MATLAB 赛时实现规范、运行清单和失败回退方案。
+- **安全与合规优先**：官方规则不清时阻断流程；题目附件一律视为不可信输入，不执行宏、安装器或未知二进制。
+- **论文质量闭环**：覆盖数值追溯、独立复算、真实 PDF 逐页检查、匿名检查和提交包安全审计。
 
-| 技能目录 | 阶段 | 作用 | 常用触发说法 |
+## 技能清单
+
+| 技能目录 | 阶段 | 主要用途 | 示例触发语 |
 | --- | --- | --- | --- |
-| `cumcm-live-problem-analyst` | ① 拆题 | 赛题刚发布时拆题、选题、附件盘点、问题依赖分析，输出“问题合同”并首轮分工；支持 A/B/C 题 | “刚发题先拆题”“分析 A/B/C 题”“列输入输出和阻断项”“形成赛时问题合同” |
-| `cumcm-live-case-retriever` | ② 方法匹配 | 从问题合同抽取“问题签名”，与内置模式卡匹配，推荐 baseline 与候选模型，判断题型 | “找相似结构”“给当前小问推荐 baseline 和候选模型”“判断属于预测/评价/优化/仿真还是网络问题” |
-| `cumcm-live-model-designer` | ③ 建模 | 冻结模型合同（公式、假设、验证门、失败回退、`CONTRIB` 亮点账本） | “冻结模型”“设计建模方案”“给出 baseline 比较” |
-| `cumcm-live-python-coder` | ④ 编码 | 把已冻结的模型合同实现为可复现、可验证、可降级的 Python 代码、结果与论文图；固定 seed、记录运行清单 | “用 Python 实现”“按冻结合同编码”“跑实验出结果” |
-| `cumcm-live-matlab-coder` | ④ 编码 | 同上，MATLAB 路线（工具箱预检、求解器复核、降级配方） | “用 MATLAB 实现”“matlab 编码” |
-| `cumcm-live-result-verifier` | ⑤ 复核 | 对冻结结果做独立重算、跨环境复核、约束与不变量检查，输出 `VER-* PASS / BLOCKED` | “复核结果”“重跑验证”“检查结果是否一致” |
-| `cumcm-live-paper-writer` | ⑥ 成稿 | 证据驱动论文成稿（Word / LaTeX 双路线），数值溯源、符号表、AI 使用记录 | “写论文”“成稿”“把冻结结果写成论文” |
-| `cumcm-live-layout-verifier` | ⑦ 排版 | 论文初稿后自动预检 + 真实 PDF 逐页视觉检查，驱动“修复—重新生成—重查”闭环，输出 `LAYOUT-* PASS` | “排版复核”“检查版式”“渲染 PDF 检查” |
-| `cumcm-live-final-auditor` | ⑧ 终审 | 提交前终稿审计：完整性、安全、数值与引用一致性、AI 记录、匿名、合规，输出“可提交/阻塞” | “终稿审计”“能否提交”“提交前检查” |
-| `cumcm-review` | 赛后/提交审查 | 9 维度深审、反 AI 五查、代码↔数据↔论文一致性检查 | “审查论文”“review 一下”“做一致性检查” |
-| `visual-director` | 附加 | 中文社交图文/封面视觉方案，与竞赛流程无关的可选技能 | “做图文方案”“视觉导演”“生成封面提示词” |
+| `cumcm-idea` | 前期构思 | 对完整题目逐句审计，形成全题建模思路与后续流程交接文档 | “调用 cumcm-idea 分析这道题” |
+| `cumcm-live-problem-analyst` | ① 拆题 | 盘点规则、题面与附件，拆分小问、依赖和验收条件，生成问题合同 | “刚发题，先拆题并形成问题合同” |
+| `cumcm-live-case-retriever` | ② 方法匹配 | 提取问题签名，匹配内置原创模式卡，推荐 baseline 与候选模型 | “判断题型并推荐 baseline” |
+| `cumcm-live-model-designer` | ③ 模型设计 | 比较候选模型，定义变量、公式、约束、验证门和回退方案，冻结模型合同 | “设计方案并冻结模型” |
+| `cumcm-live-python-coder` | ④ Python 编码 | 将冻结合同实现为可复现的 Python 代码、结果表和论文图 | “按冻结合同用 Python 实现” |
+| `cumcm-live-matlab-coder` | ④ MATLAB 编码 | 完成工具箱预检、求解实现、结果冻结和兼容性降级 | “按冻结合同用 MATLAB 实现” |
+| `cumcm-live-result-verifier` | ⑤ 结果复核 | 同环境复跑、独立重算、约束检查、边界测试和论文数字反向追踪 | “复核结果并给出 PASS/BLOCKED” |
+| `cumcm-live-paper-writer` | ⑥ 论文成稿 | 将已通过复核的模型、结果、图表和引文整理为 Word/LaTeX 论文草稿 | “把冻结结果写成论文” |
+| `cumcm-live-layout-verifier` | ⑦ 排版复核 | 自动预检并逐页查看真实 PDF，检查裁切、重叠、分页、字体和匿名信息 | “渲染 PDF 并检查排版” |
+| `cumcm-live-final-auditor` | ⑧ 终稿审计 | 检查提交包完整性、安全性、数值与引用一致性、AI 记录和规则合规性 | “提交前做终稿审计” |
+| `cumcm-review` | 独立深审 | 从评审人角度进行 9 维度论文审查，输出 P0/P1/P2 问题清单 | “调用 cumcm-review 审查论文” |
 
-> `visual-director` 与本套件的竞赛主线无关，属于附加技能；不需要时可只安装 `cumcm-live-*` 与 `cumcm-review`。
-
----
-
-## 2. 工作流
+## 推荐工作流
 
 ```mermaid
 flowchart LR
-    A[赛题发布] --> B[cumcm-live-problem-analyst<br/>拆题 · 问题合同]
-    B --> C[cumcm-live-case-retriever<br/>方法模式匹配]
-    C --> D[cumcm-live-model-designer<br/>冻结模型合同]
-    D --> E[cumcm-live-python-coder / cumcm-live-matlab-coder<br/>编码求解 · 冻结结果]
-    E --> F[cumcm-live-result-verifier<br/>结果复核 VER-* PASS]
-    F --> G[cumcm-live-paper-writer<br/>论文成稿]
-    G --> H[cumcm-live-layout-verifier<br/>排版复核 LAYOUT-* PASS]
-    H --> I[cumcm-live-final-auditor<br/>终稿审计]
-    I --> J[提交]
-    F -.赛后可选.-> K[cumcm-review 深审]
-    G -.赛后可选.-> K
+    A[官方规则、题面与附件] --> B[问题审计与拆题]
+    B --> C[方法模式匹配]
+    C --> D[模型设计与冻结]
+    D --> E{编码路线}
+    E -->|Python| F[Python 求解]
+    E -->|MATLAB| G[MATLAB 求解]
+    F --> H[结果冻结]
+    G --> H
+    H --> I[重复验证 VER PASS]
+    I --> J[论文成稿]
+    J --> K[排版复核 LAYOUT PASS]
+    K --> L[终稿审计 AUDIT PASS]
+    L --> M[人工确认并提交]
+    I -.可选.-> N[cumcm-review 独立深审]
+    J -.可选.-> N
 ```
 
-要点：
+核心门禁原则：
 
-- 每个阶段都有“冻结”与“门禁”：模型合同未 `FROZEN` 不编码，结果未 `VER-* PASS` 不写论文，论文未 `LAYOUT-* PASS` 不终审，终审未过不宣称“可提交”。
-- 各技能通过 `contract / freeze_id / run_id / RID / FIG / TAB / CONTRIB / AI-*` 等标识互相交接，保证论文里的每个关键数字都能溯源。
+1. 当届规则或 AI 使用许可不明确时，输出 `BLOCKED_RULES`，不继续给出赛时模型或求解建议。
+2. 问题合同与模型合同未冻结时，不进入正式编码。
+3. 结果未获得同版本 `VER-* PASS` 时，不得作为论文中的正式实验结果。
+4. PDF 未获得同版本 `LAYOUT-* PASS` 时，不进入最终提交审计。
+5. 终审未通过时，不宣称提交包“可提交”。
+6. 代码、数据、参数或论文候选文件发生变化后，相关冻结和检查结论必须重新生成。
 
----
+## 安装
 
-## 3. 环境要求
-
-### 3.1 必需环境
-
-| 组件 | 要求 | 说明 |
-| --- | --- | --- |
-| Codex | 桌面版 App | 技能按 `~/.codex/skills` 约定加载；需登录 OpenAI 账号（订阅）或配置 API Key |
-| 操作系统 | Windows 10/11 | 均可，部分脚本路径示例以 Windows / POSIX 通用写法给出 |
-| Python | **3.10+**（推荐 3.11 / 3.12） | 自带脚本使用了 `X | None` 类型标注，Python 3.10 以下无法运行 |
-| Python 依赖 | 见下方清单 | 覆盖数据处理、建模、绘图、PDF 检查 |
-
-核心 Python 依赖：
-
-- `numpy`、`pandas`、`scipy` —— 数据处理 / 数值计算 / 优化（`linprog`、`milp` 内置 HiGHS）
-- `scikit-learn`、`statsmodels` —— 回归 / 分类 / 时间序列
-- `matplotlib` —— 论文图（需中文字体，见 3.2）
-- `networkx` —— 图 / 网络题
-- `openpyxl` —— 读取 Excel 附件
-- `pymupdf`（`fitz`）、`pdfplumber` —— PDF 检查（`cumcm-review`、排版预检脚本需要）
-
-### 3.2 可选环境（按路线）
-
-| 组件 | 何时需要 | 要求 |
-| --- | --- | --- |
-| MATLAB | 选择 MATLAB 编码路线 | R2020a 及以上（`exportgraphics` 等）；常用工具箱：Optimization Toolbox（`linprog` / `intlinprog` / `quadprog` / `fmincon`）、Statistics and Machine Learning Toolbox（`fitclinear` / `fitcsvm` / `fitcensemble`）、Econometrics Toolbox（`arima`）。工具箱缺失时技能会自动降级到内置 baseline |
-| LaTeX | 中文论文 LaTeX 路线 | TeX Live（建议）或 MiKTeX；需 `xelatex`、`latexmk`、`ctex` 宏包与中文字体（Windows 自带宋体/黑体，macOS 自带苹方，Linux 可装 Noto CJK） |
-| Microsoft Word | Word（.docx）路线 | Office 2016+，或使用 Python `python-docx` 的替代方案 |
-| Poppler | 排版预检增强 | 提供 `pdftoppm` / `pdfinfo` / `pdfimages`，`layout_preflight.py` 检测到时会额外检查元数据与字体 |
-| 可选 Python 库 | 特定题型增强 | `xgboost` / `lightgbm`（缺失自动回退 sklearn）、`pillow` / `opencv-python`（图像题）、`cvxpy`（可选求解器）、`pytest`（运行自带测试） |
-
-
-
-## 4. 在 Codex 中安装技能
-
-### 4.1 技能目录约定
-
- Windows：`C:\Users\<用户名>\.codex\skills\`
-
-每个技能是一个子目录，目录内必须有 `SKILL.md`（含 YAML frontmatter：`name`、`description`）。
-
-### 4.2 安装步骤
-
-1. 克隆 / 下载本仓库：
-   ```bash
-   git clone <你的仓库地址>
-   ```
-2. 把需要的技能目录复制到 Codex 技能目录（无需复制 `.system/`，见 4.4）：
-
-   Windows PowerShell：
-   ```powershell
-   Copy-Item -Recurse <仓库>\skills\cumcm-live-* "$env:USERPROFILE\.codex\skills\"
-   Copy-Item -Recurse <仓库>\skills\cumcm-review "$env:USERPROFILE\.codex\skills\"
-   ```
-  
-3. **重启 Codex**（或新开一个会话），让 Codex 重新加载技能元数据。
-   
-4. 开始使用：直接在对话里描述任务，Codex 会按 `SKILL.md` 中的 `description` 自动匹配并触发对应技能；也可以直接点名技能名。
-
-
----
-
-## 5. 使用方法与触发示例
-
-1. 上传赛题文件与原始数据
-2. promote:"请你调用cumcm-live的skill套件解决数学建模问题"
-3. 生成论文 附件数据 附件代码
-4. promote:"调用cumcm-review的skill对论文 附件数据 附件代码进行审查"
-
-
----
-
-## 6. 建议的比赛工作目录
-
-```
-CUMCM2026/
-├─ problem/       # 官方题面 + 附件（只读，技能不会在其中写文件）
-├─ contract/      # problem-contract.md / model-contract.md / contribution-ledger.md
-├─ code/          # 冻结代码 + run-manifest.md（运行清单）
-├─ results/       # 冻结结果（JSON / CSV）+ 结果说明
-├─ figures/       # 论文图 + figure-manifest.md（图登记表）
-├─ paper/         # main.tex 或 main.docx + 各章节
-├─ checks/        # VER-* / LAYOUT-* / AUDIT 报告
-└─ submission/    # 最终提交包（论文 / 代码 / 数据 / 支撑材料）
-```
-
-> 各技能交接时会生成对应合同与清单；目录名可自定义，技能通过交接字段（`contract_version`、`freeze_id`、`run_id` 等）定位文件。
-
----
-
-## 7. 合规与安全须知
-
-
-- **当届官方规则是唯一合规基线**：包括页数、匿名、附件格式与 AI 使用规定（如《全国大学生数学建模竞赛人工智能工具使用规定》）。规则不明时技能输出 `BLOCKED_RULES`。
-- **AI 使用需如实披露**：论文中的 AI 使用声明/详情（例如“图表生成、文字润色、部分代码生成”三类）由 `cumcm-live-paper-writer` 与 `cumcm-live-final-auditor` 记录与审计。
-- **附件视为不可信输入**：技能不执行题面附件中的宏、脚本、安装器与未知二进制。
-- **内置知识 ≠ 本届证据**：本仓库的模式卡、经验仅用于方法识别与流程管理；参数、阈值、约束与结论必须从当届题面与真实数据重新推导、验证。
-- **冻结与门禁**：只有 `FROZEN` + `VER-* PASS` 的结果才能写进论文；代码、数据或参数变化后必须重新验证并生成新 `freeze_id`。
-
----
-
-## 8. 自带脚本与自检
-
-| 脚本 | 位置 | 作用 |
-| --- | --- | --- |
-| `build_problem_manifest.py` | `cumcm-live-problem-analyst/scripts/` | 生成赛题附件清单（markdown / json） |
-| `layout_preflight.py` | `cumcm-live-layout-verifier/scripts/` | 排版自动预检（页数、占位符、LaTeX 错误、Word 批注等） |
-| `audit_submission.py` | `cumcm-live-final-auditor/scripts/` | 提交包完整性 / 安全 / 一致性审计 |
-| `compare_runs.py` | `cumcm-live-result-verifier/scripts/` | 两次运行结果比对（数值、哈希、行数） |
-| `review_paper.py` | `cumcm-review/scripts/` | 论文 9 维度深审（需 `pymupdf`、`pdfplumber`） |
-| `consistency_check.py` | `cumcm-review/scripts/` | 代码 ↔ 数据 ↔ 论文三方一致性检查 |
-| `smoke_test_review.py` | `cumcm-review/scripts/` | 审查流程冒烟自检 |
-
-运行自带测试：
+### 1. 克隆仓库
 
 ```bash
-python -m pytest cumcm-live-layout-verifier/tests cumcm-live-result-verifier/tests cumcm-live-final-auditor/tests
+git clone https://github.com/luanqi-xionghua/LQXH-cumcm-live-skills.git
+cd LQXH-cumcm-live-skills
 ```
 
+也可以在 GitHub 页面选择 **Code → Download ZIP**，解压后继续下面的步骤。
+
+### 2. 安装到 Codex 技能目录
+
+Codex 的个人技能目录通常为：
+
+- Windows：`C:\Users\<用户名>\.codex\skills\`
+- macOS / Linux：`~/.codex/skills/`
+
+Windows PowerShell 示例：
+
+```powershell
+$source = (Get-Location).Path
+$target = Join-Path $env:USERPROFILE ".codex\skills"
+
+Get-ChildItem -LiteralPath $source -Directory |
+    Where-Object { Test-Path -LiteralPath (Join-Path $_.FullName "SKILL.md") } |
+    ForEach-Object {
+        Copy-Item -LiteralPath $_.FullName -Destination $target -Recurse -Force
+    }
+```
+
+macOS / Linux 示例：
+
+```bash
+mkdir -p ~/.codex/skills
+for dir in */; do
+  if [ -f "${dir}SKILL.md" ]; then
+    cp -R "$dir" ~/.codex/skills/
+  fi
+done
+```
+
+安装完成后，重启 Codex 或新建会话，使技能元数据重新加载。
+
+### 3. 安装常用 Python 依赖
+
+建议使用 Python 3.10 或更高版本：
+
+```bash
+python -m pip install numpy pandas scipy scikit-learn statsmodels matplotlib networkx openpyxl pymupdf pdfplumber pytest
+```
+
+根据题型和工作路线，还可以安装：
+
+```bash
+python -m pip install xgboost lightgbm pillow opencv-python cvxpy python-docx
+```
+
+可选外部环境：
+
+- MATLAB R2020a+，以及题目所需的 Optimization、Statistics and Machine Learning、Econometrics 等工具箱；
+- TeX Live 或 MiKTeX，需包含 `xelatex`、`latexmk` 和 `ctex`；
+- Microsoft Word（Word 成稿路线）；
+- Poppler（提供 `pdftoppm`、`pdfinfo`、`pdfimages`，用于增强 PDF 预检）。
+
+## 快速开始
+
+在 Codex 中上传或指定以下材料：
+
+- 当届官方竞赛规则与 AI 工具使用规定；
+- 完整题面；
+- 原始附件、数据字典和结果模板；
+- 已有代码、结果或论文（如从中间阶段开始）。
+
+然后根据目标直接点名技能。例如：
+
+```text
+请调用 cumcm-live-problem-analyst，读取本届规则、A/B/C 三道题及全部附件，
+先做附件清单和问题依赖分析，再给出选题建议与问题合同。
+```
+
+```text
+请调用 cumcm-live-model-designer，根据已经确认的问题合同，
+为每个小问设计 baseline、主模型、验证方案和失败回退，并冻结模型合同。
+```
+
+```text
+请调用 cumcm-live-python-coder，严格按照冻结模型合同实现，
+固定随机种子，记录运行环境，输出代码、结果表、论文图和 run-manifest。
+```
+
+```text
+请调用 cumcm-review，对论文 PDF、源文件、代码、数据和冻结结果做独立审查，
+按 P0/P1/P2 输出问题清单；本轮只读，不修改文件。
+```
+
+## 建议的比赛目录
+
+```text
+CUMCM2026/
+├─ rules/          # 当届官方规则与 AI 使用规定
+├─ problem/        # 官方题面与原始附件，只读保存
+├─ contract/       # 问题合同、模型合同、贡献账本
+├─ code/           # 冻结代码与运行清单
+├─ results/        # JSON/CSV 等冻结结果
+├─ figures/        # 论文图与图表登记表
+├─ paper/          # Word/LaTeX 源文件与参考文献
+├─ checks/         # VER、LAYOUT、AUDIT、review 报告
+└─ submission/     # 最终候选提交包
+```
+
+建议保持 `problem/` 和 `rules/` 只读，不在原始材料目录内写入中间结果。
+
+## 自带脚本
+
+| 脚本 | 位置 | 用途 |
+| --- | --- | --- |
+| `build_problem_manifest.py` | `cumcm-live-problem-analyst/scripts/` | 生成题面及附件清单，可输出 Markdown 或 JSON |
+| `compare_runs.py` | `cumcm-live-result-verifier/scripts/` | 比较两次运行的数值、结构和文件哈希 |
+| `layout_preflight.py` | `cumcm-live-layout-verifier/scripts/` | 检查页数、占位符、编译错误、批注修订等排版问题 |
+| `audit_submission.py` | `cumcm-live-final-auditor/scripts/` | 只读扫描提交包的完整性、安全风险和文件哈希 |
+| `review_paper.py` | `cumcm-review/scripts/` | 提取 PDF 信息并执行论文机器预检 |
+| `consistency_check.py` | `cumcm-review/scripts/` | 检查代码、数据、冻结结果与论文之间的一致性 |
+| `smoke_test_review.py` | `cumcm-review/scripts/` | 对论文审查流程执行冒烟测试 |
+
+运行仓库现有自动化测试：
+
+```bash
+python -m pytest -q \
+  cumcm-live-result-verifier/tests \
+  cumcm-live-layout-verifier/tests \
+  cumcm-live-final-auditor/tests
+```
+
+脚本检查通过只代表相应机器规则通过，不等价于论文内容正确，也不等价于满足当届官方规则。
+
+## 合规与安全
+
+- **以当届官方文件为准**：仓库内的经验、模式卡和模板不构成本届事实或规则证据。
+- **如实披露 AI 使用**：AI 参与代码、图表、翻译、润色或内容生成时，应按当届要求保存记录并进行声明。
+- **不执行未知附件**：不要运行题目包、网盘资料或第三方材料中的 `.exe`、`.lnk`、Office 宏、安装脚本和未知二进制。
+- **不猜测缺失信息**：附件、字段、单位、精度或结果模板缺失时，应记录阻断项，不得虚构补全。
+- **人工承担最终责任**：模型选择、计算结果、论文表述、引文真实性和提交合规性均需参赛队员最终确认。
+- **范围限制**：赛时主线技能明确面向 CUMCM A、B、C 题，不覆盖 D、E 题，也不应直接套用其他竞赛规则。
+
+## 当前仓库状态说明
+
+截至仓库 `main` 分支的当前版本：
+
+- 根目录说明提到了名为 `cumcm-live` 的八阶段总控技能，但仓库中尚未包含对应的 `cumcm-live/` 目录；现阶段请直接调用各 `cumcm-live-*` 阶段技能。
+- `visual-director/` 当前包含视觉设计文档与代理配置，但没有独立的 `SKILL.md` 入口，因此默认安装脚本不会把它当作可加载技能复制。
+- 旧版说明中的 `<仓库>\skills\...` 路径与当前目录结构不一致；本仓库的技能目录直接位于仓库根目录下。
+
+如后续版本已补齐上述目录，请以最新仓库文件树和各目录内的 `SKILL.md` 为准。
+
+## 常见问题
+
+### 可以一次性让 Codex 完成整场比赛吗？
+
+不建议把所有工作压成一个不可检查的步骤。更可靠的方式是按阶段交付，每个阶段确认输入、产物和门禁状态，再进入下一阶段。
+
+### Python 和 MATLAB 应该选哪个？
+
+优先选择团队最熟悉、能够在截止前稳定复现的工具。Python 生态更灵活，MATLAB 在矩阵计算、优化工具箱和工程绘图方面更集中；复杂度不是选型的首要标准。
+
+### `VER-* PASS` 是否代表结果一定正确？
+
+不是。它表示同一冻结版本完成了规定的复跑、独立复核和约束检查。若输入、代码、参数或环境发生变化，需要重新冻结和验证。
+
+### `cumcm-review` 与 `cumcm-live-final-auditor` 有什么区别？
+
+`cumcm-review` 关注论文质量和可改进问题；`cumcm-live-final-auditor` 关注提交包是否完整、安全、可追溯，并是否满足已取得的当届规则。前者回答“论文哪里需要改”，后者回答“当前候选包是否具备提交条件”。
+
+## 许可证
+
+本项目采用 [MIT License](LICENSE)。
+
+## 免责声明
+
+本项目按“现状”提供，不保证获奖、评审结果或提交成功。使用者应自行确认软件依赖、计算结果、引用来源、数据授权及竞赛合规性。
 
 ---
 
-
-## 10. 安全声明
-- 使用本套件参赛，请务必遵守当届竞赛规则与 AI 使用规定；本仓库不保证任何比赛结果。
+项目地址：<https://github.com/luanqi-xionghua/LQXH-cumcm-live-skills>
