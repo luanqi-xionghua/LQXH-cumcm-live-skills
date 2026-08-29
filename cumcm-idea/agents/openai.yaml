@@ -1,7 +1,0 @@
-interface:
-  display_name: "CUMCM Idea 总控"
-  short_description: "先逐句审题，再生成贯穿全文的候选建模思路文档"
-  brand_color: "#245B86"
-  default_prompt: "Use $cumcm-idea to audit the complete contest problem sentence by sentence, then generate one self-contained CUMCM_IDEA.md with coherent modeling candidates for later use by cumcm-t2."
-policy:
-  allow_implicit_invocation: false
